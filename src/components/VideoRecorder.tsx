@@ -152,9 +152,13 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
   };
 
   const saveRecording = () => {
+    console.log('Save button clicked, recordedChunks length:', recordedChunks.current.length);
     if (recordedChunks.current.length > 0) {
       const blob = new Blob(recordedChunks.current, { type: 'video/webm' });
+      console.log('Calling onSave with blob:', blob, 'and prompt:', selectedPrompt);
       onSave(blob, selectedPrompt);
+    } else {
+      console.error('No recorded chunks available');
     }
   };
 
@@ -275,12 +279,21 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
               size="lg"
               variant="outline"
               onClick={() => {
+                console.log('Play button clicked, videoRef.current:', videoRef.current);
                 if (videoRef.current) {
+                  console.log('Video element found, paused:', videoRef.current.paused);
                   if (videoRef.current.paused) {
-                    videoRef.current.play();
+                    videoRef.current.play().then(() => {
+                      console.log('Video started playing');
+                    }).catch(err => {
+                      console.error('Error playing video:', err);
+                    });
                   } else {
                     videoRef.current.pause();
+                    console.log('Video paused');
                   }
+                } else {
+                  console.error('Video element not found');
                 }
               }}
               className="h-12"
