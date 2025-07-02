@@ -1,12 +1,13 @@
 import { Heart, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function MobileHeader() {
+  const { logout } = useAuth();
+
   const handleLogout = () => {
-    // Clear any user data/tokens
-    localStorage.clear();
-    // Redirect to auth page
+    logout();
     window.location.href = "/auth";
   };
 

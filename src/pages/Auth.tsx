@@ -3,29 +3,79 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Heart, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const { login, signup, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   const handleGoogleSignIn = () => {
-    // Implement Google SSO
-    console.log("Google sign in triggered");
+    // Demo Google login with dummy user
+    setEmail("demo@example.com");
+    setPassword("password");
+    toast({
+      title: "Demo Mode",
+      description: "Use demo@example.com / password or test@example.com / test123",
+    });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLogin) {
-      console.log("Sign in:", { email, password });
-    } else {
-      if (password !== confirmPassword) {
-        alert("Passwords don't match");
-        return;
+    
+    if (!isLogin && password !== confirmPassword) {
+      toast({
+        title: "Password Mismatch",
+        description: "Passwords don't match. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      let success = false;
+      
+      if (isLogin) {
+        success = await login(email, password);
+        if (!success) {
+          toast({
+            title: "Login Failed",
+            description: "Invalid email or password. Try demo@example.com / password",
+            variant: "destructive"
+          });
+          return;
+        }
+      } else {
+        success = await signup(email, password);
+        if (!success) {
+          toast({
+            title: "Signup Failed", 
+            description: "User already exists. Try logging in instead.",
+            variant: "destructive"
+          });
+          return;
+        }
+        toast({
+          title: "Account Created!",
+          description: "Welcome to One Final Moment. You're now signed in.",
+        });
       }
-      console.log("Sign up:", { email, password });
+
+      if (success) {
+        navigate("/");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
