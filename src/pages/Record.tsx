@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Shuffle, Heart, MessageCircle, Clock } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { VideoRecorder } from "@/components/VideoRecorder";
 import { SaveMessageModal } from "@/components/SaveMessageModal";
 import { useToast } from "@/hooks/use-toast";
+import { useVideoLibrary } from "@/contexts/VideoLibraryContext";
 
 const recordingPrompts = [
   {
@@ -43,7 +44,10 @@ export default function Record() {
   const [randomPrompt, setRandomPrompt] = useState<string | null>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
+  const [recordingPrompt, setRecordingPrompt] = useState<string | undefined>(undefined);
   const { toast } = useToast();
+  const { saveVideo } = useVideoLibrary();
+  const navigate = useNavigate();
 
   const getRandomPrompt = () => {
     const randomIndex = Math.floor(Math.random() * additionalPrompts.length);
@@ -53,6 +57,7 @@ export default function Record() {
 
   const handleVideoSave = (blob: Blob, prompt?: string) => {
     setVideoBlob(blob);
+    setRecordingPrompt(prompt);
     setShowSaveModal(true);
   };
 
@@ -60,18 +65,37 @@ export default function Record() {
     setVideoBlob(null);
     setSelectedPrompt(null);
     setRandomPrompt(null);
+    setRecordingPrompt(undefined);
   };
 
   const handleSaveMessage = (data: any) => {
-    console.log("Saving message:", data);
-    toast({
-      title: "Message Saved!",
-      description: "Your video message has been saved successfully.",
-    });
+    if (videoBlob) {
+      const videoDuration = "0:30"; // Default duration, you might want to calculate this
+      
+      saveVideo({
+        title: data.title,
+        description: data.description,
+        prompt: recordingPrompt,
+        videoBlob,
+        duration: videoDuration,
+        isPublic: data.isPublic || false,
+        category: data.category || "wisdom"
+      });
+
+      toast({
+        title: "Message Saved!",
+        description: "Your video message has been saved to your library.",
+      });
+      
+      // Navigate to library after saving
+      navigate("/library");
+    }
+    
     setShowSaveModal(false);
     setVideoBlob(null);
     setSelectedPrompt(null);
     setRandomPrompt(null);
+    setRecordingPrompt(undefined);
   };
 
   // Get current prompt text

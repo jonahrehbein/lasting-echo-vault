@@ -1,78 +1,18 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Play, Heart, Search, Filter, Clock, Lock, Globe, Users } from "lucide-react";
-
-interface LegacyMessage {
-  id: string;
-  title: string;
-  description: string;
-  creator: string;
-  duration: string;
-  createdAt: string;
-  isPublic: boolean;
-  isOwn: boolean;
-  category: "wisdom" | "story" | "love" | "advice";
-  thumbnail: string;
-}
-
-const sampleMessages: LegacyMessage[] = [
-  {
-    id: "1",
-    title: "Letters to My Grandchildren",
-    description: "Life lessons I wish I had learned earlier, passed down with love",
-    creator: "You",
-    duration: "12:45",
-    createdAt: "2024-01-15",
-    isPublic: false,
-    isOwn: true,
-    category: "wisdom",
-    thumbnail: "bg-gradient-primary"
-  },
-  {
-    id: "2",
-    title: "A Father's Love",
-    description: "Heartfelt words for my children about unconditional love and support",
-    creator: "You",
-    duration: "8:23",
-    createdAt: "2024-01-10",
-    isPublic: false,
-    isOwn: true,
-    category: "love",
-    thumbnail: "bg-gradient-accent"
-  },
-  {
-    id: "3",
-    title: "Wisdom from 70 Years",
-    description: "A grandmother shares life's most important lessons",
-    creator: "Margaret Thompson",
-    duration: "15:32",
-    createdAt: "2024-01-08",
-    isPublic: true,
-    isOwn: false,
-    category: "wisdom",
-    thumbnail: "bg-primary/20"
-  },
-  {
-    id: "4",
-    title: "The Power of Resilience",
-    description: "How to overcome life's challenges with grace and strength",
-    creator: "Robert Chen",
-    duration: "11:17",
-    createdAt: "2024-01-05",
-    isPublic: true,
-    isOwn: false,
-    category: "advice",
-    thumbnail: "bg-accent/20"
-  }
-];
+import { Play, Heart, Search, Globe, Lock, Edit, Trash2, Clock, MessageCircle } from "lucide-react";
+import { useVideoLibrary } from "@/contexts/VideoLibraryContext";
+import { EditVideoModal } from "@/components/EditVideoModal";
+import { useToast } from "@/hooks/use-toast";
 
 const categories = [
   { value: "all", label: "All Messages", icon: Globe },
   { value: "wisdom", label: "Wisdom", icon: Heart },
-  { value: "story", label: "Stories", icon: Users },
+  { value: "story", label: "Stories", icon: MessageCircle },
   { value: "love", label: "Love", icon: Heart },
   { value: "advice", label: "Advice", icon: Clock }
 ];
@@ -80,21 +20,40 @@ const categories = [
 export default function Library() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [showOnlyOwn, setShowOnlyOwn] = useState(false);
+  const [editingVideo, setEditingVideo] = useState<string | null>(null);
+  const { videos, updateVideo, deleteVideo } = useVideoLibrary();
+  const { toast } = useToast();
 
-  const filteredMessages = sampleMessages.filter(message => {
-    const matchesSearch = message.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         message.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "all" || message.category === selectedCategory;
-    const matchesOwnership = !showOnlyOwn || message.isOwn;
+  const filteredVideos = videos.filter(video => {
+    const matchesSearch = video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         video.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === "all" || video.category === selectedCategory;
     
-    return matchesSearch && matchesCategory && matchesOwnership;
+    return matchesSearch && matchesCategory;
   });
 
   const getCategoryIcon = (category: string) => {
     const categoryData = categories.find(cat => cat.value === category);
     return categoryData?.icon || Heart;
   };
+
+  const handleEditVideo = (videoId: string, updates: any) => {
+    updateVideo(videoId, updates);
+    toast({
+      title: "Video Updated",
+      description: "Your video settings have been saved.",
+    });
+  };
+
+  const handleDeleteVideo = (videoId: string) => {
+    deleteVideo(videoId);
+    toast({
+      title: "Video Deleted",
+      description: "Your video has been removed from the library.",
+    });
+  };
+
+  const editingVideoData = editingVideo ? videos.find(v => v.id === editingVideo) : null;
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -103,10 +62,10 @@ export default function Library() {
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Legacy Library
+              My Library
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Discover wisdom, stories, and heartfelt messages from people around the world
+              Your saved video messages and recordings
             </p>
           </div>
 
@@ -144,49 +103,55 @@ export default function Library() {
                       );
                     })}
                   </div>
-
-                  {/* Own Messages Toggle */}
-                  <Button
-                    variant={showOnlyOwn ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setShowOnlyOwn(!showOnlyOwn)}
-                    className="flex items-center space-x-1"
-                  >
-                    <Lock className="w-4 h-4" />
-                    <span>My Messages</span>
-                  </Button>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Messages Grid */}
+          {/* Videos Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredMessages.map((message) => {
-              const CategoryIcon = getCategoryIcon(message.category);
+            {filteredVideos.map((video) => {
+              const CategoryIcon = getCategoryIcon(video.category);
               
               return (
-                <Card key={message.id} className="shadow-card hover:shadow-gentle transition-all duration-300 group">
+                <Card key={video.id} className="shadow-card hover:shadow-gentle transition-all duration-300 group">
                   <CardContent className="p-0">
-                    {/* Thumbnail */}
-                    <div className={`aspect-video ${message.thumbnail} rounded-t-lg flex items-center justify-center relative overflow-hidden`}>
-                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300"></div>
-                      <Button
-                        variant="ghost"
-                        size="lg"
-                        className="relative z-10 bg-white/20 hover:bg-white/30 text-white border-white/30"
-                      >
-                        <Play className="w-6 h-6" />
-                      </Button>
+                    {/* Video Thumbnail */}
+                    <div className="aspect-video bg-muted rounded-t-lg flex items-center justify-center relative overflow-hidden">
+                      <video
+                        src={video.videoUrl}
+                        className="w-full h-full object-cover"
+                        preload="metadata"
+                      />
+                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
+                        <Button
+                          variant="ghost"
+                          size="lg"
+                          className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                          onClick={() => {
+                            const videoElement = document.createElement('video');
+                            videoElement.src = video.videoUrl;
+                            videoElement.controls = true;
+                            videoElement.autoplay = true;
+                            const modal = document.createElement('div');
+                            modal.className = 'fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4';
+                            modal.onclick = () => modal.remove();
+                            modal.appendChild(videoElement);
+                            document.body.appendChild(modal);
+                          }}
+                        >
+                          <Play className="w-6 h-6" />
+                        </Button>
+                      </div>
                       
                       {/* Duration Badge */}
                       <div className="absolute bottom-2 right-2 bg-black/60 text-white px-2 py-1 rounded text-xs">
-                        {message.duration}
+                        {video.duration}
                       </div>
                       
                       {/* Privacy Indicator */}
                       <div className="absolute top-2 right-2">
-                        {message.isPublic ? (
+                        {video.isPublic ? (
                           <Globe className="w-4 h-4 text-white/70" />
                         ) : (
                           <Lock className="w-4 h-4 text-white/70" />
@@ -199,26 +164,46 @@ export default function Library() {
                       <div className="flex items-start justify-between mb-2">
                         <Badge variant="secondary" className="mb-2">
                           <CategoryIcon className="w-3 h-3 mr-1" />
-                          {message.category}
+                          {video.category}
                         </Badge>
-                        {message.isOwn && (
-                          <Badge variant="outline" className="text-xs">
-                            Your Message
-                          </Badge>
-                        )}
+                        <div className="flex space-x-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setEditingVideo(video.id)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteVideo(video.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                       
                       <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
-                        {message.title}
+                        {video.title}
                       </h3>
                       
                       <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                        {message.description}
+                        {video.description}
                       </p>
                       
+                      {video.prompt && (
+                        <div className="mb-3">
+                          <p className="text-xs text-muted-foreground mb-1">Original Prompt:</p>
+                          <p className="text-xs text-muted-foreground italic line-clamp-2">
+                            "{video.prompt}"
+                          </p>
+                        </div>
+                      )}
+                      
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>By {message.creator}</span>
-                        <span>{new Date(message.createdAt).toLocaleDateString()}</span>
+                        <span>Your Message</span>
+                        <span>{new Date(video.createdAt).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -228,26 +213,44 @@ export default function Library() {
           </div>
 
           {/* Empty State */}
-          {filteredMessages.length === 0 && (
+          {filteredVideos.length === 0 && (
             <div className="text-center py-16">
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-8 h-8 text-muted-foreground" />
+                <Heart className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-2">No messages found</h3>
+              <h3 className="text-lg font-semibold text-foreground mb-2">No videos found</h3>
               <p className="text-muted-foreground mb-6">
-                Try adjusting your search or filter criteria
+                {videos.length === 0 
+                  ? "Start by recording your first video message"
+                  : "Try adjusting your search or filter criteria"
+                }
               </p>
-              <Button variant="outline" onClick={() => {
-                setSearchTerm("");
-                setSelectedCategory("all");
-                setShowOnlyOwn(false);
-              }}>
-                Clear Filters
-              </Button>
+              {videos.length === 0 ? (
+                <Button asChild>
+                  <Link to="/record">Record Your First Message</Link>
+                </Button>
+              ) : (
+                <Button variant="outline" onClick={() => {
+                  setSearchTerm("");
+                  setSelectedCategory("all");
+                }}>
+                  Clear Filters
+                </Button>
+              )}
             </div>
           )}
         </div>
       </div>
+
+      {/* Edit Video Modal */}
+      {editingVideoData && (
+        <EditVideoModal
+          isOpen={!!editingVideo}
+          onClose={() => setEditingVideo(null)}
+          onSave={(updates) => handleEditVideo(editingVideo!, updates)}
+          video={editingVideoData}
+        />
+      )}
     </div>
   );
 }
