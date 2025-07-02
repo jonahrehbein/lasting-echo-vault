@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Video, Play, Pause, Square, RotateCcw, Heart, MessageCircle, Clock } from "lucide-react";
+import { ArrowLeft, Shuffle, Heart, MessageCircle, Clock } from "lucide-react";
+import { Link } from "react-router-dom";
+import { VideoRecorder } from "@/components/VideoRecorder";
+import { SaveMessageModal } from "@/components/SaveMessageModal";
+import { useToast } from "@/hooks/use-toast";
 
 const recordingPrompts = [
   {
@@ -21,110 +25,120 @@ const recordingPrompts = [
   }
 ];
 
+const additionalPrompts = [
+  "What are you most proud of in your life?",
+  "What advice would you give to your younger self?",
+  "What do you hope people remember about you?",
+  "What's the most important lesson life has taught you?",
+  "What brings you the most joy?",
+  "What would you want your loved ones to know about facing challenges?",
+  "What traditions do you hope will continue in your family?",
+  "What story from your childhood shaped who you became?",
+  "What are you grateful for today?",
+  "What would you want to say to someone having a difficult time?"
+];
+
 export default function Record() {
-  const [isRecording, setIsRecording] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
   const [selectedPrompt, setSelectedPrompt] = useState<number | null>(null);
-  const [recordingTime, setRecordingTime] = useState("00:00");
+  const [randomPrompt, setRandomPrompt] = useState<string | null>(null);
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [videoBlob, setVideoBlob] = useState<Blob | null>(null);
+  const { toast } = useToast();
 
-  const handleStartRecording = () => {
-    setIsRecording(true);
-    setIsPaused(false);
+  const getRandomPrompt = () => {
+    const randomIndex = Math.floor(Math.random() * additionalPrompts.length);
+    setRandomPrompt(additionalPrompts[randomIndex]);
+    setSelectedPrompt(null); // Clear selected prompt if random is chosen
   };
 
-  const handlePauseRecording = () => {
-    setIsPaused(!isPaused);
+  const handleVideoSave = (blob: Blob) => {
+    setVideoBlob(blob);
+    setShowSaveModal(true);
   };
 
-  const handleStopRecording = () => {
-    setIsRecording(false);
-    setIsPaused(false);
-    setRecordingTime("00:00");
+  const handleVideoDiscard = () => {
+    setVideoBlob(null);
+    setSelectedPrompt(null);
+    setRandomPrompt(null);
+  };
+
+  const handleSaveMessage = (data: any) => {
+    console.log("Saving message:", data);
+    toast({
+      title: "Message Saved!",
+      description: "Your video message has been saved successfully.",
+    });
+    setShowSaveModal(false);
+    setVideoBlob(null);
+    setSelectedPrompt(null);
+    setRandomPrompt(null);
   };
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Mobile Header */}
+      {/* Mobile Header with Back Button */}
       <div className="bg-card border-b border-border sticky top-0 z-40">
-        <div className="px-4 py-4">
-          <h1 className="text-xl font-semibold text-foreground text-center">
-            Create Your Message
-          </h1>
-          <p className="text-sm text-muted-foreground text-center mt-1">
-            Share what matters most
-          </p>
+        <div className="flex items-center justify-between px-4 py-4">
+          <Link to="/">
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          </Link>
+          <div className="text-center">
+            <h1 className="text-xl font-semibold text-foreground">
+              Create Your Message
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Share what matters most
+            </p>
+          </div>
+          <div className="w-16"></div> {/* Spacer for centering */}
         </div>
       </div>
 
       <div className="px-4 py-6 space-y-6">
-        {/* Video Preview Card */}
+        {/* Video Recorder */}
         <Card className="shadow-card">
           <CardContent className="p-4">
-            <div className="aspect-video bg-muted rounded-lg flex items-center justify-center border-2 border-dashed border-border mb-4">
-              <div className="text-center">
-                <Video className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">
-                  {isRecording ? "Recording in progress..." : "Camera preview"}
-                </p>
-                {isRecording && (
-                  <div className="mt-4">
-                    <div className="inline-flex items-center space-x-2 bg-destructive/10 text-destructive px-3 py-1 rounded-full">
-                      <div className="w-2 h-2 bg-destructive rounded-full animate-warm-pulse"></div>
-                      <span className="font-mono text-sm">{recordingTime}</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Recording Controls */}
-            <div className="flex justify-center gap-3">
-              {!isRecording ? (
-                <Button
-                  size="lg"
-                  variant="legacy"
-                  onClick={handleStartRecording}
-                  className="flex-1 max-w-48 h-12"
-                >
-                  <Play className="w-5 h-5 mr-2" />
-                  Start Recording
-                </Button>
-              ) : (
-                <>
-                  <Button
-                    size="lg"
-                    variant="warm"
-                    onClick={handlePauseRecording}
-                    className="flex-1 h-12"
-                  >
-                    {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
-                  </Button>
-                  
-                  <Button
-                    size="lg"
-                    variant="destructive"
-                    onClick={handleStopRecording}
-                    className="flex-1 h-12"
-                  >
-                    <Square className="w-5 h-5" />
-                  </Button>
-                  
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    onClick={handleStopRecording}
-                    className="flex-1 h-12"
-                  >
-                    <RotateCcw className="w-5 h-5" />
-                  </Button>
-                </>
-              )}
-            </div>
+            <VideoRecorder onSave={handleVideoSave} onDiscard={handleVideoDiscard} />
           </CardContent>
         </Card>
 
+        {/* Random Prompt Button */}
+        <div className="flex justify-center">
+          <Button 
+            variant="warm" 
+            size="lg" 
+            onClick={getRandomPrompt}
+            className="h-12 px-6"
+          >
+            <Shuffle className="w-5 h-5 mr-2" />
+            Random Prompt
+          </Button>
+        </div>
+
+        {/* Random Prompt Display */}
+        {randomPrompt && (
+          <Card className="bg-accent/5 border-accent/20 shadow-card">
+            <CardContent className="p-4">
+              <div className="flex items-start space-x-3">
+                <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center mt-1">
+                  <Shuffle className="w-5 h-5 text-accent-foreground" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium text-foreground mb-2">Random Prompt</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {randomPrompt}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Selected Prompt Display */}
-        {selectedPrompt !== null && (
+        {selectedPrompt !== null && !randomPrompt && (
           <Card className="bg-primary/5 border-primary/20 shadow-card">
             <CardContent className="p-4">
               <div className="flex items-start space-x-3">
@@ -159,21 +173,24 @@ export default function Record() {
             {recordingPrompts.map((prompt, index) => (
               <button
                 key={index}
-                onClick={() => setSelectedPrompt(index)}
+                onClick={() => {
+                  setSelectedPrompt(index);
+                  setRandomPrompt(null); // Clear random prompt if guided is chosen
+                }}
                 className={`w-full p-4 rounded-lg border text-left transition-all duration-200 hover:shadow-card ${
-                  selectedPrompt === index
+                  selectedPrompt === index && !randomPrompt
                     ? "bg-primary/5 border-primary/20"
                     : "bg-card border-border hover:bg-muted"
                 }`}
               >
                 <div className="flex items-start space-x-3">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                    selectedPrompt === index
+                    selectedPrompt === index && !randomPrompt
                       ? "bg-primary/10"
                       : "bg-muted"
                   }`}>
                     <prompt.icon className={`w-5 h-5 ${
-                      selectedPrompt === index
+                      selectedPrompt === index && !randomPrompt
                         ? "text-primary"
                         : "text-muted-foreground"
                     }`} />
@@ -208,7 +225,7 @@ export default function Record() {
             </div>
             <div className="flex items-center space-x-3 text-sm">
               <div className="w-2 h-2 bg-primary rounded-full"></div>
-              <span className="text-muted-foreground">Take breaks if you need them</span>
+              <span className="text-muted-foreground">30-second limit for each recording</span>
             </div>
             <div className="flex items-center space-x-3 text-sm">
               <div className="w-2 h-2 bg-primary rounded-full"></div>
@@ -218,6 +235,13 @@ export default function Record() {
         </Card>
       </div>
 
+      {/* Save Message Modal */}
+      <SaveMessageModal
+        isOpen={showSaveModal}
+        onClose={() => setShowSaveModal(false)}
+        onSave={handleSaveMessage}
+        videoBlob={videoBlob}
+      />
     </div>
   );
 }

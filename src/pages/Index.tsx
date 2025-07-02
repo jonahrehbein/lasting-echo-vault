@@ -68,12 +68,19 @@ const Index = () => {
             Create meaningful video messages for your loved ones—delivered when it matters most
           </p>
           
-          <Link to="/record">
-            <Button size="lg" variant="legacy" className="w-full max-w-sm h-14 text-base font-medium">
-              <Video className="w-5 h-5 mr-2" />
-              Start Recording
-            </Button>
-          </Link>
+          <div className="space-y-3">
+            <Link to="/auth">
+              <Button size="lg" variant="legacy" className="w-full max-w-sm h-14 text-base font-medium">
+                Get Started
+              </Button>
+            </Link>
+            <Link to="/record">
+              <Button size="lg" variant="outline" className="w-full max-w-sm h-14 text-base font-medium">
+                <Video className="w-5 h-5 mr-2" />
+                Try Recording
+              </Button>
+            </Link>
+          </div>
         </div>
 
         {/* Quick Actions */}

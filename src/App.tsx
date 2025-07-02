@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { BottomNavigation } from "@/components/BottomNavigation";
 import Index from "./pages/Index";
+import Auth from "./pages/Auth";
 import Record from "./pages/Record";
 import Contacts from "./pages/Contacts";
 import Library from "./pages/Library";
@@ -22,6 +23,7 @@ const App = () => (
         <div className="min-h-screen bg-background">
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path="/auth" element={<Auth />} />
             <Route path="/record" element={<Record />} />
             <Route path="/contacts" element={<Contacts />} />
             <Route path="/library" element={<Library />} />
