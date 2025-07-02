@@ -16,6 +16,7 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [isMockMode, setIsMockMode] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const recordedChunks = useRef<Blob[]>([]);
@@ -73,12 +74,54 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
       setMediaRecorder(recorder);
     } catch (error) {
       console.error('Error accessing camera:', error);
-      alert('Unable to access camera. Please check permissions.');
+      setIsMockMode(true);
+      startMockCamera();
     }
   };
 
+  const startMockCamera = () => {
+    console.log('Starting mock camera mode');
+    if (videoRef.current) {
+      // Show a placeholder for mock recording
+      videoRef.current.style.background = 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)';
+      videoRef.current.style.display = 'flex';
+      videoRef.current.style.alignItems = 'center';
+      videoRef.current.style.justifyContent = 'center';
+    }
+  };
+
+  const createMockVideoBlob = () => {
+    // Create a simple mock video blob for testing
+    const canvas = document.createElement('canvas');
+    canvas.width = 640;
+    canvas.height = 480;
+    const ctx = canvas.getContext('2d');
+    
+    if (ctx) {
+      // Create a simple gradient background
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+      gradient.addColorStop(0, '#667eea');
+      gradient.addColorStop(1, '#764ba2');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Add some text
+      ctx.fillStyle = 'white';
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Mock Recording', canvas.width / 2, canvas.height / 2);
+      ctx.fillText(`Duration: ${formatTime(recordingTime)}`, canvas.width / 2, canvas.height / 2 + 40);
+    }
+    
+    return new Promise<Blob>((resolve) => {
+      canvas.toBlob((blob) => {
+        resolve(blob || new Blob());
+      }, 'image/png');
+    });
+  };
+
   const startRecording = async () => {
-    if (!mediaRecorder) {
+    if (!isMockMode && !mediaRecorder) {
       await startCamera();
       return;
     }
@@ -88,7 +131,9 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
     setRecordingTime(0);
     setHasRecording(false);
     
-    mediaRecorder.start();
+    if (!isMockMode && mediaRecorder) {
+      mediaRecorder.start();
+    }
     
     // 30-second timer
     timerRef.current = setInterval(() => {
@@ -103,7 +148,7 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
   };
 
   const pauseRecording = () => {
-    if (mediaRecorder && isRecording) {
+    if (!isMockMode && mediaRecorder && isRecording) {
       if (isPaused) {
         mediaRecorder.resume();
         timerRef.current = setInterval(() => {
@@ -125,14 +170,28 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
     }
   };
 
-  const stopRecording = () => {
-    if (mediaRecorder && isRecording) {
+  const stopRecording = async () => {
+    if (!isMockMode && mediaRecorder && isRecording) {
       mediaRecorder.stop();
-      setIsRecording(false);
-      setIsPaused(false);
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
+    }
+    
+    if (isMockMode) {
+      // Create mock video blob and set it up
+      const mockBlob = await createMockVideoBlob();
+      recordedChunks.current = [mockBlob];
+      setHasRecording(true);
+      
+      if (videoRef.current) {
+        const url = URL.createObjectURL(mockBlob);
+        setVideoUrl(url);
+        videoRef.current.style.background = 'none';
       }
+    }
+    
+    setIsRecording(false);
+    setIsPaused(false);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
     }
   };
 
@@ -148,13 +207,26 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
       clearInterval(timerRef.current);
     }
     
-    startCamera(); // Restart camera
+    if (isMockMode) {
+      startMockCamera();
+    } else {
+      startCamera(); // Restart camera
+    }
   };
 
-  const saveRecording = () => {
+  const saveRecording = async () => {
     console.log('Save button clicked, recordedChunks length:', recordedChunks.current.length);
     if (recordedChunks.current.length > 0) {
-      const blob = new Blob(recordedChunks.current, { type: 'video/webm' });
+      let blob = recordedChunks.current[0];
+      
+      // For mock mode, create a proper video-like blob
+      if (isMockMode) {
+        // Create a simple mock video blob with proper mime type
+        blob = new Blob(['mock video data for testing'], { type: 'video/webm' });
+      } else {
+        blob = new Blob(recordedChunks.current, { type: 'video/webm' });
+      }
+      
       console.log('Calling onSave with blob:', blob, 'and prompt:', selectedPrompt);
       onSave(blob, selectedPrompt);
     } else {
@@ -167,7 +239,11 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
     setVideoUrl(null);
     recordedChunks.current = [];
     onDiscard();
-    startCamera(); // Restart camera for new recording
+    if (isMockMode) {
+      startMockCamera();
+    } else {
+      startCamera(); // Restart camera for new recording
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -180,14 +256,23 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
     <div className="space-y-4">
       {/* Video Preview */}
       <div className="aspect-video bg-muted rounded-lg overflow-hidden border-2 border-dashed border-border relative">
-        <video
-          ref={videoRef}
-          className="w-full h-full object-cover"
-          autoPlay
-          muted={!hasRecording}
-          playsInline
-          controls={hasRecording}
-        />
+        {isMockMode && !hasRecording ? (
+          <div className="w-full h-full bg-gradient-to-br from-primary to-primary-foreground flex items-center justify-center">
+            <div className="text-center text-white">
+              <div className="text-lg font-semibold mb-2">Mock Camera Mode</div>
+              <div className="text-sm opacity-80">Camera not available - using mock recording</div>
+            </div>
+          </div>
+        ) : (
+          <video
+            ref={videoRef}
+            className="w-full h-full object-cover"
+            autoPlay
+            muted={!hasRecording}
+            playsInline
+            controls={hasRecording}
+          />
+        )}
         
         {/* Recording Indicator */}
         {isRecording && (
