@@ -63,7 +63,7 @@ export function EditVideoModal({ isOpen, onClose, onSave, video }: EditVideoModa
           
           <div>
             <Label>Category</Label>
-            <Select value={category} onValueChange={setCategory}>
+            <Select value={category} onValueChange={(value: string) => setCategory(value as "wisdom" | "story" | "love" | "advice")}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
