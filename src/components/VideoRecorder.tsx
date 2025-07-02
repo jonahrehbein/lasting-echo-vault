@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Play, Pause, Square, RotateCcw, Save, Trash2 } from "lucide-react";
 
 interface VideoRecorderProps {
-  onSave: (videoBlob: Blob) => void;
+  onSave: (videoBlob: Blob, prompt?: string) => void;
   onDiscard: () => void;
+  selectedPrompt?: string;
 }
 
-export function VideoRecorder({ onSave, onDiscard }: VideoRecorderProps) {
+export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
@@ -153,7 +154,7 @@ export function VideoRecorder({ onSave, onDiscard }: VideoRecorderProps) {
   const saveRecording = () => {
     if (recordedChunks.current.length > 0) {
       const blob = new Blob(recordedChunks.current, { type: 'video/webm' });
-      onSave(blob);
+      onSave(blob, selectedPrompt);
     }
   };
 
@@ -181,6 +182,7 @@ export function VideoRecorder({ onSave, onDiscard }: VideoRecorderProps) {
           autoPlay
           muted={!hasRecording}
           playsInline
+          controls={hasRecording}
         />
         
         {/* Recording Indicator */}
@@ -201,10 +203,19 @@ export function VideoRecorder({ onSave, onDiscard }: VideoRecorderProps) {
             </div>
           </div>
         )}
+
+        {/* Prompt Overlay during recording */}
+        {(isRecording || isPaused) && selectedPrompt && (
+          <div className="absolute bottom-4 left-4 right-4">
+            <div className="bg-black/80 text-white p-3 rounded-lg text-sm backdrop-blur-sm">
+              <p className="leading-relaxed">{selectedPrompt}</p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Controls */}
-      <div className="flex justify-center gap-3">
+      <div className="space-y-3">
         {!hasRecording ? (
           // Recording Controls
           !isRecording ? (
@@ -212,18 +223,18 @@ export function VideoRecorder({ onSave, onDiscard }: VideoRecorderProps) {
               size="lg"
               variant="legacy"
               onClick={startRecording}
-              className="flex-1 max-w-48 h-12"
+              className="w-full h-12"
             >
               <Play className="w-5 h-5 mr-2" />
               Start Recording
             </Button>
           ) : (
-            <>
+            <div className="grid grid-cols-3 gap-2">
               <Button
                 size="lg"
                 variant="warm"
                 onClick={pauseRecording}
-                className="flex-1 h-12"
+                className="h-12"
               >
                 {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
               </Button>
@@ -232,7 +243,7 @@ export function VideoRecorder({ onSave, onDiscard }: VideoRecorderProps) {
                 size="lg"
                 variant="destructive"
                 onClick={stopRecording}
-                className="flex-1 h-12"
+                className="h-12"
               >
                 <Square className="w-5 h-5" />
               </Button>
@@ -241,22 +252,22 @@ export function VideoRecorder({ onSave, onDiscard }: VideoRecorderProps) {
                 size="lg"
                 variant="outline"
                 onClick={resetRecording}
-                className="flex-1 h-12"
+                className="h-12"
               >
                 <RotateCcw className="w-5 h-5" />
               </Button>
-            </>
+            </div>
           )
         ) : (
           // Post-Recording Controls
-          <>
+          <div className="grid grid-cols-2 gap-2">
             <Button
               size="lg"
               variant="legacy"
               onClick={saveRecording}
-              className="flex-1 h-12"
+              className="h-12"
             >
-              <Save className="w-5 h-5 mr-2" />
+              <Save className="w-4 h-4 mr-2" />
               Save
             </Button>
             
@@ -272,9 +283,9 @@ export function VideoRecorder({ onSave, onDiscard }: VideoRecorderProps) {
                   }
                 }
               }}
-              className="flex-1 h-12"
+              className="h-12"
             >
-              <Play className="w-5 h-5" />
+              <Play className="w-4 h-4 mr-2" />
               Play
             </Button>
             
@@ -282,9 +293,9 @@ export function VideoRecorder({ onSave, onDiscard }: VideoRecorderProps) {
               size="lg"
               variant="destructive"
               onClick={discardRecording}
-              className="flex-1 h-12"
+              className="h-12"
             >
-              <Trash2 className="w-5 h-5" />
+              <Trash2 className="w-4 h-4 mr-2" />
               Discard
             </Button>
             
@@ -292,12 +303,12 @@ export function VideoRecorder({ onSave, onDiscard }: VideoRecorderProps) {
               size="lg"
               variant="outline"
               onClick={resetRecording}
-              className="flex-1 h-12"
+              className="h-12"
             >
-              <RotateCcw className="w-5 h-5" />
+              <RotateCcw className="w-4 h-4 mr-2" />
               New
             </Button>
-          </>
+          </div>
         )}
       </div>
 

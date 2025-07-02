@@ -51,7 +51,7 @@ export default function Record() {
     setSelectedPrompt(null); // Clear selected prompt if random is chosen
   };
 
-  const handleVideoSave = (blob: Blob) => {
+  const handleVideoSave = (blob: Blob, prompt?: string) => {
     setVideoBlob(blob);
     setShowSaveModal(true);
   };
@@ -72,6 +72,13 @@ export default function Record() {
     setVideoBlob(null);
     setSelectedPrompt(null);
     setRandomPrompt(null);
+  };
+
+  // Get current prompt text
+  const getCurrentPrompt = () => {
+    if (randomPrompt) return randomPrompt;
+    if (selectedPrompt !== null) return recordingPrompts[selectedPrompt].prompt;
+    return undefined;
   };
 
   return (
@@ -101,7 +108,11 @@ export default function Record() {
         {/* Video Recorder */}
         <Card className="shadow-card">
           <CardContent className="p-4">
-            <VideoRecorder onSave={handleVideoSave} onDiscard={handleVideoDiscard} />
+            <VideoRecorder 
+              onSave={handleVideoSave} 
+              onDiscard={handleVideoDiscard} 
+              selectedPrompt={getCurrentPrompt()}
+            />
           </CardContent>
         </Card>
 
