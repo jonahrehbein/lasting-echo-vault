@@ -1,173 +1,127 @@
-import { MobileHeader } from "@/components/MobileHeader";
-import { BottomNavigation } from "@/components/BottomNavigation";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Video, Users, Library, Shield, Heart, MessageCircle, Clock, Lock } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Heart, Video, Users, Library, Settings, Clock, MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-const features = [
-  {
-    icon: Video,
-    title: "Record Messages",
-    description: "Create heartfelt video messages with guided prompts",
-    href: "/record"
-  },
-  {
-    icon: Users,
-    title: "Trusted Contacts",
-    description: "Choose who will receive your messages",
-    href: "/contacts"
-  },
-  {
-    icon: Library,
-    title: "Your Library",
-    description: "Manage and organize your recorded messages",
-    href: "/library"
-  },
-  {
-    icon: Shield,
-    title: "Secure Vault",
-    description: "Encrypted storage for your precious memories",
-    href: "/vault"
-  }
-];
-
-const quickActions = [
-  {
-    icon: Heart,
-    title: "Share Your Love",
-    description: "Tell them what they mean to you",
-    color: "text-primary"
-  },
-  {
-    icon: MessageCircle,
-    title: "Life Lessons",
-    description: "Share wisdom and guidance",
-    color: "text-accent-foreground"
-  },
-  {
-    icon: Clock,
-    title: "Memories",
-    description: "Preserve special moments",
-    color: "text-primary"
-  }
-];
-
-const Index = () => {
-  const { user, isLoading } = useAuth();
+export default function Index() {
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
 
-  // Redirect unauthenticated users to the auth page
   useEffect(() => {
-    if (!isLoading && !user) {
-      navigate('/auth');
+    if (!user) {
+      navigate("/auth");
     }
-  }, [user, isLoading, navigate]);
+  }, [user, navigate]);
 
-  // Show loading while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Heart className="w-8 h-8 text-primary mx-auto mb-4 animate-pulse" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Don't render anything if not authenticated (will redirect)
-  if (!user) {
+  if (!user || !profile) {
     return null;
   }
 
+  const quickActions = [
+    {
+      title: "Record Message",
+      description: "Create a new legacy video",
+      icon: Video,
+      color: "bg-primary",
+      path: "/record"
+    },
+    {
+      title: "My Library", 
+      description: "View your recorded messages",
+      icon: Library,
+      color: "bg-accent",
+      path: "/library"
+    },
+    {
+      title: "Contacts",
+      description: "Manage your loved ones", 
+      icon: Users,
+      color: "bg-secondary",
+      path: "/contacts"
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-background pb-20">
-      <MobileHeader />
-      
-      {/* Hero Section */}
-      <div className="px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-4 leading-tight">
-            Preserve Your Legacy
-          </h1>
-          <p className="text-lg text-muted-foreground mb-8 leading-relaxed">
-            Create meaningful video messages for your loved ones—delivered when it matters most
-          </p>
+    <div className="min-h-screen bg-gradient-comfort pb-20">
+      {/* Header */}
+      <div className="pt-8 pb-6 px-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-gentle">
+              <Heart className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-serif font-light text-foreground">
+                Welcome back, {profile.first_name || 'Friend'}
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Your legacy continues to grow
+              </p>
+            </div>
+          </div>
           
-          <div className="space-y-3">
-            <Link to="/record">
-              <Button size="lg" variant="legacy" className="w-full max-w-sm h-14 text-base font-medium">
-                <Video className="w-5 h-5 mr-2" />
-                Start Recording
-              </Button>
-            </Link>
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/profile")}
+            className="rounded-full"
+          >
+            {profile.avatar_url ? (
+              <img 
+                src={profile.avatar_url} 
+                alt="Profile" 
+                className="w-8 h-8 rounded-full object-cover"
+              />
+            ) : (
+              <Settings className="w-5 h-5" />
+            )}
+          </Button>
         </div>
 
-        {/* Quick Actions */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Quick Start</h2>
-          <div className="grid grid-cols-1 gap-3">
-            {quickActions.map((action, index) => (
-              <Card key={index} className="shadow-card hover:shadow-gentle transition-all duration-300">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <action.icon className={`w-5 h-5 ${action.color}`} />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-foreground">{action.title}</h3>
-                      <p className="text-sm text-muted-foreground">{action.description}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Feature Cards */}
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Features</h2>
-          <div className="grid grid-cols-2 gap-4">
-            {features.map((feature, index) => (
-              <Link key={index} to={feature.href}>
-                <Card className="shadow-card hover:shadow-gentle transition-all duration-300 h-full">
-                  <CardContent className="p-4 text-center">
-                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-3">
-                      <feature.icon className="w-6 h-6 text-primary" />
-                    </div>
-                    <h3 className="font-medium text-foreground mb-1 text-sm">{feature.title}</h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Security Notice */}
-        <Card className="bg-primary/5 border-primary/20 shadow-card">
-          <CardContent className="p-4">
-            <div className="flex items-start space-x-3">
-              <Lock className="w-5 h-5 text-primary mt-0.5" />
-              <div>
-                <h3 className="font-medium text-foreground mb-1">Secure & Private</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Your messages are encrypted and stored securely. Only your trusted contacts can access them when the time comes.
+        {profile.tagline && (
+          <Card className="mb-6 bg-primary/5 border-primary/20">
+            <CardContent className="pt-4">
+              <div className="flex items-start space-x-3">
+                <MessageCircle className="w-5 h-5 text-primary mt-0.5 flex-shrink-0" />
+                <p className="text-sm font-medium text-foreground italic">
+                  "{profile.tagline}"
                 </p>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      <BottomNavigation />
+      {/* Quick Actions */}
+      <div className="px-6 space-y-4">
+        <h2 className="text-lg font-serif font-medium text-foreground mb-4">
+          Quick Actions
+        </h2>
+        
+        <div className="grid grid-cols-1 gap-4">
+          {quickActions.map((action) => (
+            <Card 
+              key={action.path}
+              className="cursor-pointer transition-all duration-300 hover:shadow-warm hover:scale-[1.02] border-0 shadow-gentle"
+              onClick={() => navigate(action.path)}
+            >
+              <CardContent className="p-6">
+                <div className="flex items-center space-x-4">
+                  <div className={`w-12 h-12 ${action.color} rounded-2xl flex items-center justify-center shadow-sm`}>
+                    <action.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-foreground">{action.title}</h3>
+                    <p className="text-sm text-muted-foreground">{action.description}</p>  
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Index;
+}

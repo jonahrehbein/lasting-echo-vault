@@ -2,41 +2,80 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User, Session } from '@supabase/supabase-js';
 
-interface AuthUser {
+interface Profile {
   id: string;
-  email: string;
-  name: string;
+  user_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+  tagline: string | null;
+  onboarding_completed: boolean;
+  first_video_recorded: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 interface AuthContextType {
-  user: AuthUser | null;
+  user: User | null;
+  session: Session | null;
+  profile: Profile | null;
   login: (email: string, password: string) => Promise<boolean>;
   signup: (email: string, password: string, name?: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
+      setProfile(data || null);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
+
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchProfile(user.id);
+    }
+  };
 
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         setSession(session);
+        setUser(session?.user ?? null);
+        
         if (session?.user) {
-          setUser({
-            id: session.user.id,
-            email: session.user.email || '',
-            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || ''
-          });
+          // Fetch profile data when user is authenticated
+          setTimeout(() => {
+            fetchProfile(session.user.id);
+          }, 0);
         } else {
-          setUser(null);
+          setProfile(null);
         }
+        
         setIsLoading(false);
       }
     );
@@ -44,13 +83,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
+      setUser(session?.user ?? null);
+      
       if (session?.user) {
-        setUser({
-          id: session.user.id,
-          email: session.user.email || '',
-          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || ''
-        });
+        fetchProfile(session.user.id);
       }
+      
       setIsLoading(false);
     });
 
@@ -94,7 +132,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout, isLoading }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      session, 
+      profile, 
+      login, 
+      signup, 
+      logout, 
+      isLoading,
+      refreshProfile 
+    }}>
       {children}
     </AuthContext.Provider>
   );
