@@ -110,6 +110,32 @@ export default function Auth() {
       <div className="flex-1 flex items-center justify-center px-4 pb-8">
         <div className="w-full max-w-md">
           <Card className="shadow-card border-0">
+            {/* Tab Navigation */}
+            <div className="flex border-b border-border">
+              <button
+                type="button"
+                onClick={() => setIsLogin(true)}
+                className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
+                  isLogin 
+                    ? "text-primary border-b-2 border-primary bg-primary/5" 
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsLogin(false)}
+                className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
+                  !isLogin 
+                    ? "text-primary border-b-2 border-primary bg-primary/5" 
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Sign Up
+              </button>
+            </div>
+            
             <CardHeader className="text-center space-y-4 pb-8">
               <CardTitle className="text-2xl font-semibold text-foreground">
                 {isLogin ? "Welcome back" : "Create your legacy"}
@@ -211,20 +237,6 @@ export default function Auth() {
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </form>
-
-              {/* Toggle */}
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {isLogin 
-                    ? "Don't have an account? Sign up" 
-                    : "Already have an account? Sign in"
-                  }
-                </button>
-              </div>
             </CardContent>
           </Card>
 
