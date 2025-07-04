@@ -364,21 +364,15 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
               size="lg"
               variant="outline"
               onClick={() => {
-                console.log('Play button clicked, videoRef.current:', videoRef.current);
-                if (videoRef.current) {
-                  console.log('Video element found, paused:', videoRef.current.paused);
-                  if (videoRef.current.paused) {
-                    videoRef.current.play().then(() => {
-                      console.log('Video started playing');
-                    }).catch(err => {
-                      console.error('Error playing video:', err);
-                    });
-                  } else {
-                    videoRef.current.pause();
-                    console.log('Video paused');
-                  }
-                } else {
-                  console.error('Video element not found');
+                const blob = recordedChunks.current.length > 0 
+                  ? new Blob(recordedChunks.current, { type: 'video/webm' })
+                  : null;
+                
+                if (blob && videoRef.current) {
+                  const videoURL = URL.createObjectURL(blob);
+                  videoRef.current.src = videoURL;
+                  videoRef.current.load();
+                  videoRef.current.play().catch(e => console.error("Play error:", e));
                 }
               }}
               className="h-12"
