@@ -154,7 +154,9 @@ export default function VideoDetails() {
         videoBlob: state.videoBlob,
         duration: formattedDuration,
         isPublic: false,
-        category: "love"
+        category: "love",
+        scheduledDeliveryDate: deliveryDate,
+        sharedWithContacts: selectedContacts
       });
 
       toast({
