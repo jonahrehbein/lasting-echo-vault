@@ -125,39 +125,55 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
     }
 
     try {
+      // Reset chunks state
       const chunks: Blob[] = [];
+      setRecordedChunks([]);
       
-      mediaRecorder.current = new MediaRecorder(currentStream);
+      mediaRecorder.current = new MediaRecorder(currentStream, {
+        mimeType: 'video/webm;codecs=vp8,opus'
+      });
 
       mediaRecorder.current.ondataavailable = (event) => {
-        console.log('Data available:', event.data.size);
+        console.log('Data available:', event.data.size, 'bytes');
         if (event.data.size > 0) {
           chunks.push(event.data);
+          console.log('Total chunks now:', chunks.length);
         }
       };
 
       mediaRecorder.current.onstop = () => {
-        console.log('Recording stopped, chunks:', chunks.length);
-        const blob = new Blob(chunks, { type: 'video/webm' });
-        const url = URL.createObjectURL(blob);
-        setVideoUrl(url);
-        setRecordedChunks(chunks);
-        
-        if (videoRef.current) {
-          videoRef.current.srcObject = null;
-          videoRef.current.src = url;
-          videoRef.current.load();
+        console.log('Recording stopped, final chunks:', chunks.length);
+        if (chunks.length > 0) {
+          const blob = new Blob(chunks, { type: 'video/webm' });
+          console.log('Created blob with size:', blob.size);
+          const url = URL.createObjectURL(blob);
+          setVideoUrl(url);
+          setRecordedChunks(chunks);
+          
+          if (videoRef.current) {
+            videoRef.current.srcObject = null;
+            videoRef.current.src = url;
+            videoRef.current.load();
+          }
+          setHasRecording(true);
+          console.log('Recording setup complete, hasRecording set to true');
+        } else {
+          console.error('No chunks recorded!');
+          setHasRecording(false);
         }
-        setHasRecording(true);
-        console.log('Recording setup complete, hasRecording set to true');
       };
 
-      mediaRecorder.current.start();
+      mediaRecorder.current.onerror = (event) => {
+        console.error('MediaRecorder error:', event);
+      };
+
+      // Start recording with timeslice to ensure data is captured
+      mediaRecorder.current.start(1000); // Capture data every second
       setIsRecording(true);
       setIsPaused(false);
       setRecordingTime(0);
       setHasRecording(false);
-      console.log('Recording started');
+      console.log('Recording started with timeslice');
       
       // 30-second timer
       timerRef.current = setInterval(() => {
