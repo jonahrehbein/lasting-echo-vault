@@ -8,17 +8,6 @@ interface VideoRecorderProps {
   selectedPrompt?: string;
 }
 
-const handlePlay = (videoRef: React.RefObject<HTMLVideoElement>) => {
-  if (videoRef.current?.src) {
-    videoRef.current.play().catch(err => {
-      console.error('Playback failed:', err);
-      alert('Unable to play video.');
-    });
-  } else {
-    alert('No video available to play.');
-  }
-};
-
 export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -32,6 +21,17 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
   const videoRef = useRef<HTMLVideoElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const mediaRecorder = useRef<MediaRecorder | null>(null);
+
+  const handlePlay = () => {
+    if (videoRef.current && videoUrl) {
+      videoRef.current.play().catch(err => {
+        console.error('Playback failed:', err);
+        alert('Unable to play video.');
+      });
+    } else {
+      alert('No video available to play.');
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -131,7 +131,7 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
 
   const startRecording = async () => {
     try {
-      setRecordedChunks([]);
+      const chunks: Blob[] = [];
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: true, 
         audio: true 
@@ -146,15 +146,17 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
 
       mediaRecorder.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          setRecordedChunks(prev => [...prev, event.data]);
+          chunks.push(event.data);
         }
       };
 
       mediaRecorder.current.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const blob = new Blob(chunks, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
         setVideoUrl(url);
+        setRecordedChunks(chunks);
         if (videoRef.current) {
+          videoRef.current.srcObject = null;
           videoRef.current.src = url;
           videoRef.current.load();
         }
@@ -379,7 +381,7 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
             <Button
               size="lg"
               variant="outline"
-              onClick={() => handlePlay(videoRef)}
+              onClick={handlePlay}
               className="h-12"
             >
               <Play className="w-4 h-4 mr-2" />
