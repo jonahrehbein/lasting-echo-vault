@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function MobileHeader() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -23,8 +23,8 @@ export function MobileHeader() {
           </Link>
           
           <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Logout
+            Hi {user?.name}
+            <LogOut className="w-4 h-4 ml-2" />
           </Button>
         </div>
       </div>

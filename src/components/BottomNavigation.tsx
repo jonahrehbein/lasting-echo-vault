@@ -9,8 +9,8 @@ export function BottomNavigation() {
   const navItems = [
     { path: "/", icon: Heart, label: "Home" },
     { path: "/record", icon: Video, label: "Record" },
-    { path: "/contacts", icon: Users, label: "Contacts" },
     { path: "/library", icon: Library, label: "Library" },
+    { path: "/contacts", icon: Users, label: "Contacts" },
     { path: "/profile", icon: Settings, label: "Profile" },
   ];
   
