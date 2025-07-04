@@ -20,6 +20,7 @@ export default {
 		extend: {
 			fontFamily: {
 				sans: ['Inter', 'system-ui', 'sans-serif'],
+				serif: ['Merriweather', 'Georgia', 'serif'],
 			},
 			colors: {
 				border: 'hsl(var(--border))',
@@ -76,11 +77,13 @@ export default {
 				'gradient-primary': 'var(--gradient-primary)',
 				'gradient-accent': 'var(--gradient-accent)',
 				'gradient-subtle': 'var(--gradient-subtle)',
+				'gradient-comfort': 'var(--gradient-comfort)',
 			},
 			boxShadow: {
 				'gentle': 'var(--shadow-gentle)',
 				'warm': 'var(--shadow-warm)',
 				'card': 'var(--shadow-card)',
+				'comfort': 'var(--shadow-comfort)',
 			},
 			keyframes: {
 				'accordion-down': {

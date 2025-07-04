@@ -95,65 +95,65 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle flex flex-col">
+    <div className="min-h-screen bg-gradient-comfort flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-center py-8">
+      <div className="flex items-center justify-center py-12">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
-            <Heart className="w-5 h-5 text-primary-foreground" />
+          <div className="w-12 h-12 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-gentle">
+            <Heart className="w-6 h-6 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-semibold text-foreground">One Final Moment</h1>
+          <h1 className="text-3xl font-serif font-light text-foreground">One Final Moment</h1>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center px-4 pb-8">
-        <div className="w-full max-w-md">
-          <Card className="shadow-card border-0">
+      <div className="flex-1 flex items-center justify-center px-6 pb-12">
+        <div className="w-full max-w-lg">
+          <Card className="shadow-comfort border-0 bg-card/80 backdrop-blur-sm">
             {/* Tab Navigation */}
-            <div className="flex border-b border-border">
+            <div className="flex border-b border-border/50">
               <button
                 type="button"
                 onClick={() => setIsLogin(true)}
-                className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
+                className={`flex-1 py-5 px-8 text-center font-medium transition-all duration-300 ${
                   isLogin 
-                    ? "text-primary border-b-2 border-primary bg-primary/5" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-primary border-b-2 border-primary bg-primary/8 font-serif" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
                 }`}
               >
-                Sign In
+                Welcome Back
               </button>
               <button
                 type="button"
                 onClick={() => setIsLogin(false)}
-                className={`flex-1 py-4 px-6 text-center font-medium transition-colors ${
+                className={`flex-1 py-5 px-8 text-center font-medium transition-all duration-300 ${
                   !isLogin 
-                    ? "text-primary border-b-2 border-primary bg-primary/5" 
-                    : "text-muted-foreground hover:text-foreground"
+                    ? "text-primary border-b-2 border-primary bg-primary/8 font-serif" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
                 }`}
               >
-                Sign Up
+                Create Your Legacy
               </button>
             </div>
             
-            <CardHeader className="text-center space-y-4 pb-8">
-              <CardTitle className="text-2xl font-semibold text-foreground">
-                {isLogin ? "Welcome back" : "Create your legacy"}
+            <CardHeader className="text-center space-y-6 pb-8 pt-8">
+              <CardTitle className="text-3xl font-serif font-light text-foreground leading-relaxed">
+                {isLogin ? "Continue your journey" : "Create your lasting legacy"}
               </CardTitle>
-              <CardDescription className="text-lg text-muted-foreground leading-relaxed">
+              <CardDescription className="text-lg text-muted-foreground leading-relaxed max-w-md mx-auto font-light">
                 {isLogin 
-                  ? "Continue your journey of preserving meaningful moments"
-                  : "Start creating lasting memories for your loved ones"
+                  ? "Welcome back to your sacred space of memories and meaningful connections"
+                  : "Your words will safely comfort and inspire future generations. Begin preserving your most precious thoughts today."
                 }
               </CardDescription>
             </CardHeader>
             
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-8 px-8 pb-8">
               {/* Google SSO Button */}
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="w-full h-14 text-base font-medium border-2"
+                className="w-full h-16 text-base font-medium border-2 border-border/60 hover:border-primary/30 hover:bg-primary/5 shadow-gentle transition-all duration-300 hover:shadow-warm"
                 onClick={handleGoogleSignIn}
               >
                 <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
@@ -166,34 +166,34 @@ export default function Auth() {
               </Button>
 
               {/* Divider */}
-              <div className="relative my-6">
+              <div className="relative my-8">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border"></div>
+                  <div className="w-full border-t border-border/40"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-card text-muted-foreground">or</span>
+                  <span className="px-6 bg-card text-muted-foreground font-light">or continue with email</span>
                 </div>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Email Input */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Email</label>
+                <div className="space-y-3">
+                  <label className="text-sm font-medium text-foreground">Your Email</label>
                   <div className="relative">
                     <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                     <Input
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder="Enter your email address"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-12 h-14 text-base border-border focus:border-primary"
+                      className="pl-12 h-14 text-base border-border/60 focus:border-primary/50 focus:ring-primary/20 bg-background/50 transition-all duration-300"
                       required
                     />
                   </div>
                 </div>
 
                 {/* Password Input */}
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <label className="text-sm font-medium text-foreground">Password</label>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -202,7 +202,7 @@ export default function Auth() {
                       placeholder="Enter your password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-12 h-14 text-base border-border focus:border-primary"
+                      className="pl-12 h-14 text-base border-border/60 focus:border-primary/50 focus:ring-primary/20 bg-background/50 transition-all duration-300"
                       required
                     />
                   </div>
@@ -210,7 +210,7 @@ export default function Auth() {
 
                 {/* Confirm Password for Sign Up */}
                 {!isLogin && (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <label className="text-sm font-medium text-foreground">Confirm Password</label>
                     <div className="relative">
                       <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
@@ -219,7 +219,7 @@ export default function Auth() {
                         placeholder="Confirm your password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
-                        className="pl-12 h-14 text-base border-border focus:border-primary"
+                        className="pl-12 h-14 text-base border-border/60 focus:border-primary/50 focus:ring-primary/20 bg-background/50 transition-all duration-300"
                         required
                       />
                     </div>
@@ -231,19 +231,26 @@ export default function Auth() {
                   type="submit"
                   size="lg" 
                   variant="legacy" 
-                  className="w-full h-14 text-base font-medium mt-6"
+                  className="w-full h-16 text-lg font-medium mt-8 shadow-gentle hover:shadow-warm transition-all duration-300 hover:scale-[1.02]"
+                  disabled={isLoading}
                 >
-                  {isLogin ? "Sign In" : "Create Account"}
-                  <ArrowRight className="w-5 h-5 ml-2" />
+                  {isLoading ? (
+                    "Please wait..."
+                  ) : (
+                    <>
+                      {isLogin ? "Continue Your Journey" : "Begin Your Legacy"}
+                      <ArrowRight className="w-5 h-5 ml-2" />
+                    </>
+                  )}
                 </Button>
               </form>
             </CardContent>
           </Card>
 
           {/* Footer Message */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-sm mx-auto">
-              Your messages are encrypted and stored securely. We're here to help you create lasting legacies with peace of mind.
+          <div className="mt-10 text-center">
+            <p className="text-base text-muted-foreground leading-relaxed max-w-lg mx-auto font-light">
+              <span className="font-medium text-primary">Securely preserve your most precious words.</span> Your messages are encrypted and stored with the highest security standards. We're here to help you create lasting legacies with complete peace of mind.
             </p>
           </div>
         </div>
