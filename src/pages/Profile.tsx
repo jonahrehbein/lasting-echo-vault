@@ -77,7 +77,7 @@ export default function Profile() {
               <div className="space-y-4">
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Name</Label>
-                  <p className="text-foreground font-medium">{user?.name}</p>
+                  <p className="text-foreground font-medium">{user?.user_metadata?.full_name || user?.email}</p>
                 </div>
                 <div>
                   <Label className="text-sm font-medium text-muted-foreground">Email</Label>

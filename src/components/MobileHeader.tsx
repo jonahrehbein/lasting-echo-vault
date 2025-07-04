@@ -23,7 +23,7 @@ export function MobileHeader() {
           </Link>
           
           <Button variant="ghost" size="sm" onClick={handleLogout}>
-            Hi {user?.name}
+            Hi {user?.user_metadata?.full_name || user?.email}
             <LogOut className="w-4 h-4 ml-2" />
           </Button>
         </div>
