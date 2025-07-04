@@ -56,9 +56,12 @@ export default function Record() {
   };
 
   const handleVideoSave = (blob: Blob, prompt?: string) => {
-    setVideoBlob(blob);
-    setRecordingPrompt(prompt);
-    setShowSaveModal(true);
+    navigate("/video-details", {
+      state: {
+        videoBlob: blob,
+        prompt: prompt
+      }
+    });
   };
 
   const handleVideoDiscard = () => {

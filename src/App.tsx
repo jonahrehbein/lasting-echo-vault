@@ -12,6 +12,7 @@ import { FirstVideoPrompt } from "@/components/FirstVideoPrompt";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Record from "./pages/Record";
+import VideoDetails from "./pages/VideoDetails";
 import Contacts from "./pages/Contacts";
 import Library from "./pages/Library";
 import Profile from "./pages/Profile";
