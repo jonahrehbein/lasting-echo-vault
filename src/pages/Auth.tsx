@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Heart, Mail, Lock, ArrowRight, ArrowLeft } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Heart, Mail, Lock, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
@@ -12,18 +13,32 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const { login, signup, isLoading } = useAuth();
+  const { login, signup, isLoading, user } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleGoogleSignIn = () => {
-    // Demo Google login with dummy user
-    setEmail("demo@example.com");
-    setPassword("password");
-    toast({
-      title: "Demo Mode",
-      description: "Use demo@example.com / password or test@example.com / test123",
+  // Redirect authenticated users to home
+  useEffect(() => {
+    if (user) {
+      navigate("/");
+    }
+  }, [user, navigate]);
+
+  const handleGoogleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/`
+      }
     });
+    
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Google sign-in failed. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,7 +61,7 @@ export default function Auth() {
         if (!success) {
           toast({
             title: "Login Failed",
-            description: "Invalid email or password. Try demo@example.com / password",
+            description: "Invalid email or password. Please try again.",
             variant: "destructive"
           });
           return;
@@ -56,14 +71,14 @@ export default function Auth() {
         if (!success) {
           toast({
             title: "Signup Failed", 
-            description: "User already exists. Try logging in instead.",
+            description: "Failed to create account. Please try again.",
             variant: "destructive"
           });
           return;
         }
         toast({
           title: "Account Created!",
-          description: "Welcome to One Final Moment. You're now signed in.",
+          description: "Welcome to One Final Moment. Please check your email to verify your account.",
         });
       }
 
@@ -81,21 +96,14 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen bg-gradient-subtle flex flex-col">
-      {/* Header with Back Button */}
-      <div className="flex items-center justify-between p-4">
-        <Link to="/">
-          <Button variant="ghost" size="sm">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-        </Link>
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
-            <Heart className="w-4 h-4 text-primary-foreground" />
+      {/* Header */}
+      <div className="flex items-center justify-center py-8">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 bg-gradient-primary rounded-xl flex items-center justify-center">
+            <Heart className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-semibold text-lg text-foreground">One Final Moment</span>
+          <h1 className="text-2xl font-semibold text-foreground">One Final Moment</h1>
         </div>
-        <div className="w-16"></div> {/* Spacer for centering */}
       </div>
 
       {/* Main Content */}

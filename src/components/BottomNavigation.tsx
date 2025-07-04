@@ -1,8 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
 import { Heart, Video, Users, Library, Settings } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export function BottomNavigation() {
   const location = useLocation();
+  const { user } = useAuth();
   
   const isActive = (path: string) => location.pathname === path;
   
@@ -13,6 +15,11 @@ export function BottomNavigation() {
     { path: "/contacts", icon: Users, label: "Contacts" },
     { path: "/profile", icon: Settings, label: "Profile" },
   ];
+
+  // Don't show navigation if user is not authenticated
+  if (!user) {
+    return null;
+  }
   
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-card z-50">

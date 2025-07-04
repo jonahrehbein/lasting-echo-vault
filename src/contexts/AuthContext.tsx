@@ -1,13 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import type { User, Session } from '@supabase/supabase-js';
 
-interface User {
+interface AuthUser {
   id: string;
   email: string;
   name: string;
 }
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   login: (email: string, password: string) => Promise<boolean>;
   signup: (email: string, password: string, name?: string) => Promise<boolean>;
   logout: () => void;
@@ -16,100 +18,79 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Dummy users for testing
-const dummyUsers = [
-  { id: '1', email: 'demo@example.com', password: 'password', name: 'Demo User' },
-  { id: '2', email: 'test@example.com', password: 'test123', name: 'Test User' }
-];
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check for saved user session
-    const savedUser = localStorage.getItem('auth_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-    setIsLoading(false);
+    // Set up auth state listener FIRST
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            email: session.user.email || '',
+            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || ''
+          });
+        } else {
+          setUser(null);
+        }
+        setIsLoading(false);
+      }
+    );
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || ''
+        });
+      }
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setIsLoading(true);
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Check dummy users
-    const foundUser = dummyUsers.find(u => u.email === email && u.password === password);
-    
-    // Check registered users from localStorage
-    const registeredUsers = JSON.parse(localStorage.getItem('registered_users') || '[]');
-    const registeredUser = registeredUsers.find((u: any) => u.email === email && u.password === password);
-    
-    if (foundUser || registeredUser) {
-      const authUser = foundUser || registeredUser;
-      const userData = {
-        id: authUser.id || Date.now().toString(),
-        email: authUser.email,
-        name: authUser.name || authUser.email.split('@')[0]
-      };
-      
-      setUser(userData);
-      localStorage.setItem('auth_user', JSON.stringify(userData));
-      setIsLoading(false);
-      return true;
-    }
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     
     setIsLoading(false);
-    return false;
+    return !error;
   };
 
   const signup = async (email: string, password: string, name?: string): Promise<boolean> => {
     setIsLoading(true);
     
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    const redirectUrl = `${window.location.origin}/`;
     
-    // Check if user already exists
-    const registeredUsers = JSON.parse(localStorage.getItem('registered_users') || '[]');
-    const existingUser = registeredUsers.find((u: any) => u.email === email);
-    const dummyUser = dummyUsers.find(u => u.email === email);
-    
-    if (existingUser || dummyUser) {
-      setIsLoading(false);
-      return false; // User already exists
-    }
-    
-    // Create new user
-    const newUser = {
-      id: Date.now().toString(),
+    const { error } = await supabase.auth.signUp({
       email,
       password,
-      name: name || email.split('@')[0]
-    };
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          name: name || email.split('@')[0]
+        }
+      }
+    });
     
-    // Save to registered users
-    registeredUsers.push(newUser);
-    localStorage.setItem('registered_users', JSON.stringify(registeredUsers));
-    
-    // Auto-login after signup
-    const userData = {
-      id: newUser.id,
-      email: newUser.email,
-      name: newUser.name
-    };
-    
-    setUser(userData);
-    localStorage.setItem('auth_user', JSON.stringify(userData));
     setIsLoading(false);
-    return true;
+    return !error;
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('auth_user');
+  const logout = async () => {
+    await supabase.auth.signOut();
   };
 
   return (
