@@ -52,9 +52,9 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-gradient-subtle pb-20">
+      <div className="container mx-auto px-4 py-8 max-w-sm">
+        <div className="mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -186,13 +186,13 @@ export default function Profile() {
 
           {/* Logout */}
           <Card className="shadow-card">
-            <CardContent className="pt-6">
-              <Button
-                variant="destructive"
-                onClick={handleLogout}
-                className="w-full"
-                size="lg"
-              >
+            <CardContent className="pt-6 flex justify-center">
+                <Button
+                  variant="destructive"
+                  onClick={handleLogout}
+                  className="w-[90%]"
+                  size="lg"
+                >
                 <LogOut className="w-4 h-4 mr-2" />
                 Logout
               </Button>

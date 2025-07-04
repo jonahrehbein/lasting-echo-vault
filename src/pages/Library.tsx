@@ -136,9 +136,9 @@ export default function Library() {
   const editingVideoData = editingVideo ? videos.find(v => v.id === editingVideo) : null;
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-gradient-subtle pb-20">
+      <div className="container mx-auto px-4 py-8 max-w-sm">
+        <div className="mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -151,9 +151,9 @@ export default function Library() {
 
           {/* Tabs */}
           <Tabs defaultValue="messages" className="space-y-8">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="messages">Messages</TabsTrigger>
-              <TabsTrigger value="storage">Storage & Vault</TabsTrigger>
+            <TabsList className="flex w-full">
+              <TabsTrigger value="messages" className="flex-1">Messages</TabsTrigger>
+              <TabsTrigger value="storage" className="flex-1">Storage</TabsTrigger>
             </TabsList>
             
             <TabsContent value="messages" className="space-y-8">
@@ -198,7 +198,7 @@ export default function Library() {
               </div>
 
               {/* Videos Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 {filteredVideos.map((video) => {
                   const CategoryIcon = getCategoryIcon(video.category);
                   
@@ -333,7 +333,7 @@ export default function Library() {
 
             <TabsContent value="storage" className="space-y-8">
               {/* Current Usage */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 <Card className="shadow-card">
                   <CardHeader>
                     <CardTitle className="flex items-center space-x-2">
@@ -383,7 +383,7 @@ export default function Library() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 gap-6">
                     <div className="flex items-start space-x-3">
                       <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center mt-1">
                         <Shield className="w-4 h-4 text-primary" />
@@ -429,7 +429,7 @@ export default function Library() {
                   Choose Your Legacy Storage Plan
                 </h2>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-6">
                   {storagePlans.map((plan) => {
                     const IconComponent = plan.icon;
                     return (

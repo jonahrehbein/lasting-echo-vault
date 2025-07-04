@@ -112,7 +112,7 @@ export default function Record() {
     <div className="min-h-screen bg-background pb-20">
       {/* Mobile Header with Back Button */}
       <div className="bg-card border-b border-border sticky top-0 z-40">
-        <div className="flex items-center justify-between px-4 py-4">
+        <div className="flex items-center justify-between px-4 py-4 max-w-sm mx-auto">
           <Link to="/">
             <Button variant="ghost" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
@@ -131,7 +131,7 @@ export default function Record() {
         </div>
       </div>
 
-      <div className="px-4 py-6 space-y-6">
+      <div className="px-4 py-6 space-y-6 max-w-sm mx-auto">
         {/* Video Recorder */}
         <Card className="shadow-card">
           <CardContent className="p-4">
@@ -149,7 +149,7 @@ export default function Record() {
             variant="warm" 
             size="lg" 
             onClick={getRandomPrompt}
-            className="h-12 px-6"
+            className="h-12 px-6 w-[90%]"
           >
             <Shuffle className="w-5 h-5 mr-2" />
             Random Prompt

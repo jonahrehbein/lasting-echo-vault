@@ -183,7 +183,7 @@ export default function VideoDetails() {
     <div className="min-h-screen bg-background pb-20">
       {/* Header */}
       <div className="bg-card border-b border-border sticky top-0 z-40">
-        <div className="flex items-center justify-between px-4 py-4">
+        <div className="flex items-center justify-between px-4 py-4 max-w-sm mx-auto">
           <Button 
             variant="ghost" 
             size="sm" 
@@ -204,7 +204,7 @@ export default function VideoDetails() {
         </div>
       </div>
 
-      <div className="px-4 py-6 space-y-6">
+      <div className="px-4 py-6 space-y-6 max-w-sm mx-auto">
         {/* Video Thumbnail Preview */}
         <Card className="shadow-card">
           <CardHeader>
@@ -399,14 +399,14 @@ export default function VideoDetails() {
         </Card>
 
         {/* Save Button */}
-        <div className="space-y-4">
-          <Button
-            size="lg"
-            variant="legacy"
-            onClick={handleSaveVideo}
-            disabled={isLoading}
-            className="w-full h-12"
-          >
+        <div className="space-y-4 flex flex-col items-center">
+            <Button
+              size="lg"
+              variant="legacy"
+              onClick={handleSaveVideo}
+              disabled={isLoading}
+              className="w-[90%] h-12"
+            >
             {isLoading ? "Saving..." : "Schedule Message"}
           </Button>
           

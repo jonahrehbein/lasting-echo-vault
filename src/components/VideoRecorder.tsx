@@ -8,6 +8,17 @@ interface VideoRecorderProps {
   selectedPrompt?: string;
 }
 
+const handlePlay = (videoRef: React.RefObject<HTMLVideoElement>) => {
+  if (videoRef.current?.src) {
+    videoRef.current.play().catch(err => {
+      console.error('Playback failed:', err);
+      alert('Unable to play video.');
+    });
+  } else {
+    alert('No video available to play.');
+  }
+};
+
 export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecorderProps) {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -214,24 +225,23 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
     }
   };
 
-  const saveRecording = async () => {
-    console.log('Save button clicked, recordedChunks length:', recordedChunks.current.length);
+  const handleSave = () => {
+    let videoBlob = null;
+    
     if (recordedChunks.current.length > 0) {
-      let blob = recordedChunks.current[0];
-      
-      // For mock mode, create a proper video-like blob
       if (isMockMode) {
-        // Create a simple mock video blob with proper mime type
-        blob = new Blob(['mock video data for testing'], { type: 'video/webm' });
+        videoBlob = new Blob(['mock video data for testing'], { type: 'video/webm' });
       } else {
-        blob = new Blob(recordedChunks.current, { type: 'video/webm' });
+        videoBlob = new Blob(recordedChunks.current, { type: 'video/webm' });
       }
-      
-      console.log('Calling onSave with blob:', blob, 'and prompt:', selectedPrompt);
-      onSave(blob, selectedPrompt);
-    } else {
-      console.error('No recorded chunks available');
     }
+    
+    if (!videoBlob) {
+      alert('No video recorded to save.');
+      return;
+    }
+    
+    onSave(videoBlob, selectedPrompt);
   };
 
   const discardRecording = () => {
@@ -253,7 +263,7 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
   };
 
   return (
-    <div className="space-y-4">
+    <div className="w-full max-w-sm mx-auto space-y-4">
       {/* Video Preview */}
       <div className="aspect-video bg-muted rounded-lg overflow-hidden border-2 border-dashed border-border relative">
         {isMockMode && !hasRecording ? (
@@ -312,7 +322,7 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
               size="lg"
               variant="legacy"
               onClick={startRecording}
-              className="w-full h-12"
+              className="w-[90%] mx-auto h-12"
             >
               <Play className="w-5 h-5 mr-2" />
               Start Recording
@@ -353,7 +363,7 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
             <Button
               size="lg"
               variant="legacy"
-              onClick={saveRecording}
+              onClick={handleSave}
               className="h-12"
             >
               <Save className="w-4 h-4 mr-2" />
@@ -363,18 +373,7 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
             <Button
               size="lg"
               variant="outline"
-              onClick={() => {
-                const blob = recordedChunks.current.length > 0 
-                  ? new Blob(recordedChunks.current, { type: 'video/webm' })
-                  : null;
-                
-                if (blob && videoRef.current) {
-                  const videoURL = URL.createObjectURL(blob);
-                  videoRef.current.src = videoURL;
-                  videoRef.current.load();
-                  videoRef.current.play().catch(e => console.error("Play error:", e));
-                }
-              }}
+              onClick={() => handlePlay(videoRef)}
               className="h-12"
             >
               <Play className="w-4 h-4 mr-2" />

@@ -67,9 +67,9 @@ export default function Contacts() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-subtle">
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-subtle pb-20">
+      <div className="container mx-auto px-4 py-8 max-w-sm">
+        <div className="mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
@@ -80,9 +80,9 @@ export default function Contacts() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="space-y-8">
             {/* Contacts List */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="space-y-6">
               {/* Add New Contact */}
               {!showAddForm ? (
                 <Card className="shadow-card border-dashed border-2 hover:shadow-gentle transition-all duration-300">

@@ -46,7 +46,7 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-gradient-comfort pb-20">
       {/* Header */}
-      <div className="pt-8 pb-6 px-6">
+      <div className="pt-8 pb-6 px-6 max-w-sm mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-gentle">
@@ -95,7 +95,7 @@ export default function Index() {
       </div>
 
       {/* Quick Actions */}
-      <div className="px-6 space-y-4">
+      <div className="px-6 space-y-4 max-w-sm mx-auto">
         <h2 className="text-lg font-serif font-medium text-foreground mb-4">
           Quick Actions
         </h2>
