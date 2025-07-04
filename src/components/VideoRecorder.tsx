@@ -24,14 +24,14 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
   const [isPaused, setIsPaused] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [hasRecording, setHasRecording] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isMockMode, setIsMockMode] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const recordedBlobRef = useRef<Blob | null>(null);
+  const mediaRecorder = useRef<MediaRecorder | null>(null);
 
   useEffect(() => {
     return () => {
@@ -56,17 +56,17 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
         videoRef.current.srcObject = mediaStream;
       }
 
-      const recorder = new MediaRecorder(mediaStream);
-      recordedChunks.current = [];
+      mediaRecorder.current = new MediaRecorder(mediaStream);
+      setRecordedChunks([]);
       
-      recorder.ondataavailable = (event) => {
+      mediaRecorder.current.ondataavailable = (event) => {
         if (event.data.size > 0) {
-          recordedChunks.current.push(event.data);
+          setRecordedChunks(prev => [...prev, event.data]);
         }
       };
 
-      recorder.onstop = () => {
-        const blob = new Blob(recordedChunks.current, { type: 'video/webm' });
+      mediaRecorder.current.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
         const url = URL.createObjectURL(blob);
         setVideoUrl(url);
         setHasRecording(true);
@@ -81,8 +81,6 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
           videoRef.current.src = url;
         }
       };
-
-      setMediaRecorder(recorder);
     } catch (error) {
       console.error('Error accessing camera:', error);
       setIsMockMode(true);
@@ -133,7 +131,7 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
 
   const startRecording = async () => {
     try {
-      chunksRef.current = [];
+      setRecordedChunks([]);
       const mediaStream = await navigator.mediaDevices.getUserMedia({ 
         video: true, 
         audio: true 
@@ -144,19 +142,20 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
         videoRef.current.srcObject = mediaStream;
       }
 
-      const recorder = new MediaRecorder(mediaStream);
-      recorderRef.current = recorder;
+      mediaRecorder.current = new MediaRecorder(mediaStream);
 
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunksRef.current.push(e.data);
+      mediaRecorder.current.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          setRecordedChunks(prev => [...prev, event.data]);
         }
       };
 
-      recorder.onstop = () => {
-        recordedBlobRef.current = new Blob(chunksRef.current, { type: "video/webm" });
-        if (videoRef.current && recordedBlobRef.current) {
-          videoRef.current.src = URL.createObjectURL(recordedBlobRef.current);
+      mediaRecorder.current.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        setVideoUrl(url);
+        if (videoRef.current) {
+          videoRef.current.src = url;
           videoRef.current.load();
         }
         setHasRecording(true);
@@ -167,7 +166,7 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
         }
       };
 
-      recorder.start();
+      mediaRecorder.current.start();
       setIsRecording(true);
       setIsPaused(false);
       setRecordingTime(0);
@@ -191,9 +190,9 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
   };
 
   const pauseRecording = () => {
-    if (!isMockMode && mediaRecorder && isRecording) {
+    if (!isMockMode && mediaRecorder.current && isRecording) {
       if (isPaused) {
-        mediaRecorder.resume();
+        mediaRecorder.current.resume();
         timerRef.current = setInterval(() => {
           setRecordingTime(prev => {
             if (prev >= 30) {
@@ -204,7 +203,7 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
           });
         }, 1000);
       } else {
-        mediaRecorder.pause();
+        mediaRecorder.current.pause();
         if (timerRef.current) {
           clearInterval(timerRef.current);
         }
@@ -214,10 +213,7 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
   };
 
   const stopRecording = () => {
-    if (recorderRef.current && isRecording) {
-      recorderRef.current.stop();
-    }
-    
+    mediaRecorder.current?.stop();
     setIsRecording(false);
     setIsPaused(false);
     if (timerRef.current) {
@@ -231,7 +227,7 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
     setRecordingTime(0);
     setHasRecording(false);
     setVideoUrl(null);
-    recordedChunks.current = [];
+    setRecordedChunks([]);
     
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -245,18 +241,19 @@ export function VideoRecorder({ onSave, onDiscard, selectedPrompt }: VideoRecord
   };
 
   const handleSave = () => {
-    if (!recordedBlobRef.current) {
+    if (recordedChunks.length === 0) {
       alert('No video recorded to save.');
       return;
     }
     
-    onSave(recordedBlobRef.current, selectedPrompt);
+    const blob = new Blob(recordedChunks, { type: 'video/webm' });
+    onSave(blob, selectedPrompt);
   };
 
   const discardRecording = () => {
     setHasRecording(false);
     setVideoUrl(null);
-    recordedChunks.current = [];
+    setRecordedChunks([]);
     onDiscard();
     if (isMockMode) {
       startMockCamera();
