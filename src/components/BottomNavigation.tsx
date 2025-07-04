@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Heart, Video, Users, Library, Shield } from "lucide-react";
+import { Heart, Video, Users, Library, Settings } from "lucide-react";
 
 export function BottomNavigation() {
   const location = useLocation();
@@ -11,7 +11,7 @@ export function BottomNavigation() {
     { path: "/record", icon: Video, label: "Record" },
     { path: "/contacts", icon: Users, label: "Contacts" },
     { path: "/library", icon: Library, label: "Library" },
-    { path: "/vault", icon: Shield, label: "Vault" },
+    { path: "/profile", icon: Settings, label: "Profile" },
   ];
   
   return (

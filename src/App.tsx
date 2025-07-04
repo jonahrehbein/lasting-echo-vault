@@ -12,7 +12,7 @@ import Auth from "./pages/Auth";
 import Record from "./pages/Record";
 import Contacts from "./pages/Contacts";
 import Library from "./pages/Library";
-import Vault from "./pages/Vault";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,7 +32,7 @@ const App = () => (
                 <Route path="/record" element={<Record />} />
                 <Route path="/contacts" element={<Contacts />} />
                 <Route path="/library" element={<Library />} />
-                <Route path="/vault" element={<Vault />} />
+                <Route path="/profile" element={<Profile />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
